@@ -106,6 +106,9 @@ public struct Theme: Sendable {
   /// The inline code style.
   public var code: TextStyle = FontFamilyVariant(.monospaced)
 
+  /// The inline code block style with content access.
+  public var inlineCode: BlockStyle<InlineCodeConfiguration> = BlockStyle { $0.label }
+
   /// The emphasis style.
   public var emphasis: TextStyle = FontStyle(.italic)
 
@@ -213,6 +216,16 @@ extension Theme {
   public func code<S: TextStyle>(@TextStyleBuilder code: () -> S) -> Theme {
     var theme = self
     theme.code = code()
+    return theme
+  }
+
+  /// Adds an inline code block style to the theme with content access.
+  /// - Parameter body: A view builder that returns a customized inline code.
+  public func inlineCode<Body: View>(
+    @ViewBuilder body: @escaping (_ configuration: InlineCodeConfiguration) -> Body
+  ) -> Theme {
+    var theme = self
+    theme.inlineCode = .init(body: body)
     return theme
   }
 

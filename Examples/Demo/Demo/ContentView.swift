@@ -41,6 +41,11 @@ struct ContentView: View {
             Label("Code", systemImage: "curlybraces")
           }
           NavigationLink {
+            InlineCodeConfigurationView()
+          } label: {
+            Label("Inline Code Config", systemImage: "chevron.left.forwardslash.chevron.right")
+          }
+          NavigationLink {
             ImagesView()
               .navigationTitle("Images")
               .navigationBarTitleDisplayMode(.inline)

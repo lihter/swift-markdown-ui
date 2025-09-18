@@ -16,20 +16,62 @@ struct InlineText: View {
   }
 
   var body: some View {
-    TextStyleAttributesReader { attributes in
-      self.inlines.renderText(
-        baseURL: self.baseURL,
-        textStyles: .init(
-          code: self.theme.code,
-          emphasis: self.theme.emphasis,
-          strong: self.theme.strong,
-          strikethrough: self.theme.strikethrough,
-          link: self.theme.link
-        ),
-        images: self.inlineImages,
-        softBreakMode: self.softBreakMode,
-        attributes: attributes
-      )
+    // Check if any inline contains code that might need special handling
+    if self.hasCodeInlines {
+      self.renderMixedContent()
+    } else {
+      TextStyleAttributesReader { attributes in
+        self.inlines.renderText(
+          baseURL: self.baseURL,
+          textStyles: .init(
+            code: self.theme.code,
+            emphasis: self.theme.emphasis,
+            strong: self.theme.strong,
+            strikethrough: self.theme.strikethrough,
+            link: self.theme.link
+          ),
+          images: self.inlineImages,
+          softBreakMode: self.softBreakMode,
+          attributes: attributes
+        )
+      }
+    }
+  }
+
+  private var hasCodeInlines: Bool {
+    self.inlines.contains { inline in
+      if case .code = inline {
+        return true
+      }
+      return false
+    }
+  }
+
+  @ViewBuilder
+  private func renderMixedContent() -> some View {
+    HStack(spacing: 0) {
+      ForEach(Array(self.inlines.enumerated()), id: \.offset) { index, inline in
+        switch inline {
+        case .code(let content):
+          InlineCodeView(content)
+        default:
+          TextStyleAttributesReader { attributes in
+            [inline].renderText(
+              baseURL: self.baseURL,
+              textStyles: .init(
+                code: self.theme.code,
+                emphasis: self.theme.emphasis,
+                strong: self.theme.strong,
+                strikethrough: self.theme.strikethrough,
+                link: self.theme.link
+              ),
+              images: self.inlineImages,
+              softBreakMode: self.softBreakMode,
+              attributes: attributes
+            )
+          }
+        }
+      }
     }
     .task(id: self.inlines) {
       self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
