@@ -91,7 +91,8 @@ private struct AttributedStringInlineRenderer {
   }
 
   private mutating func renderCode(_ code: String) {
-    self.result += .init(code, attributes: self.textStyles.code.mergingAttributes(self.attributes))
+    let codeStyle = self.textStyles.contentBasedCodeStyle?(code) ?? self.textStyles.code
+    self.result += .init(code, attributes: codeStyle.mergingAttributes(self.attributes))
   }
 
   private mutating func renderHTML(_ html: String) {

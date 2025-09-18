@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct InlineCodeView: View {
-  @Environment(\.theme.inlineCode) private var inlineCode
+  @Environment(\.theme.code) private var code
 
   private let content: String
 
@@ -10,14 +10,7 @@ struct InlineCodeView: View {
   }
 
   var body: some View {
-    self.inlineCode.makeBody(
-      configuration: .init(
-        content: self.content,
-        label: .init(
-          Text(self.content)
-            .font(.system(.body, design: .monospaced))
-        )
-      )
-    )
+    Text(self.content)
+      .textStyle(self.code)
   }
 }

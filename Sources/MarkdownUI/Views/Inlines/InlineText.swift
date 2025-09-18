@@ -6,6 +6,7 @@ struct InlineText: View {
   @Environment(\.imageBaseURL) private var imageBaseURL
   @Environment(\.softBreakMode) private var softBreakMode
   @Environment(\.theme) private var theme
+  @Environment(\.contentBasedCodeStyle) private var contentBasedCodeStyle
 
   @State private var inlineImages: [String: Image] = [:]
 
@@ -16,67 +17,27 @@ struct InlineText: View {
   }
 
   var body: some View {
-    // Check if any inline contains code that might need special handling
-    if self.hasCodeInlines {
-      self.renderMixedContent()
-    } else {
-      TextStyleAttributesReader { attributes in
-        self.inlines.renderText(
-          baseURL: self.baseURL,
-          textStyles: .init(
-            code: self.theme.code,
-            emphasis: self.theme.emphasis,
-            strong: self.theme.strong,
-            strikethrough: self.theme.strikethrough,
-            link: self.theme.link
-          ),
-          images: self.inlineImages,
-          softBreakMode: self.softBreakMode,
-          attributes: attributes
-        )
-      }
-    }
-  }
-
-  private var hasCodeInlines: Bool {
-    self.inlines.contains { inline in
-      if case .code = inline {
-        return true
-      }
-      return false
-    }
-  }
-
-  @ViewBuilder
-  private func renderMixedContent() -> some View {
-    HStack(spacing: 0) {
-      ForEach(Array(self.inlines.enumerated()), id: \.offset) { index, inline in
-        switch inline {
-        case .code(let content):
-          InlineCodeView(content)
-        default:
-          TextStyleAttributesReader { attributes in
-            [inline].renderText(
-              baseURL: self.baseURL,
-              textStyles: .init(
-                code: self.theme.code,
-                emphasis: self.theme.emphasis,
-                strong: self.theme.strong,
-                strikethrough: self.theme.strikethrough,
-                link: self.theme.link
-              ),
-              images: self.inlineImages,
-              softBreakMode: self.softBreakMode,
-              attributes: attributes
-            )
-          }
-        }
-      }
+    TextStyleAttributesReader { attributes in
+      self.inlines.renderText(
+        baseURL: self.baseURL,
+        textStyles: .init(
+          code: self.theme.code,
+          emphasis: self.theme.emphasis,
+          strong: self.theme.strong,
+          strikethrough: self.theme.strikethrough,
+          link: self.theme.link,
+          contentBasedCodeStyle: self.contentBasedCodeStyle
+        ),
+        images: self.inlineImages,
+        softBreakMode: self.softBreakMode,
+        attributes: attributes
+      )
     }
     .task(id: self.inlines) {
       self.inlineImages = (try? await self.loadInlineImages()) ?? [:]
     }
   }
+
 
   private func loadInlineImages() async throws -> [String: Image] {
     let images = Set(self.inlines.compactMap(\.imageData))
